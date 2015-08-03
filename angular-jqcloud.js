@@ -1,6 +1,6 @@
 /*!
  * Angular jQCloud
- * For jQCloud 2 (https://github.com/mistic100/jQCloud)
+ * For jQCloud 2 (https://github.com/mistic100/jQCloud) 
  * Copyright 2014 Damien "Mistic" Sorel (http://www.strangeplanet.fr)
  * Licensed under MIT (http://opensource.org/licenses/MIT)
  */
@@ -9,13 +9,13 @@ angular.module('angular-jqcloud', []).directive('jqcloud', ['$parse', function($
   // get existing options
   var defaults = jQuery.fn.jQCloud.defaults.get(),
       jqcOptions = [];
-
+  
   for (var opt in defaults) {
     if (defaults.hasOwnProperty(opt)) {
       jqcOptions.push(opt);
     }
   }
-
+  
   return {
     restrict: 'E',
     template: '<div></div>',
@@ -25,28 +25,38 @@ angular.module('angular-jqcloud', []).directive('jqcloud', ['$parse', function($
     },
     link: function($scope, $elem, $attr) {
       var options = {};
-
+      
       for (var i=0, l=jqcOptions.length; i<l; i++) {
         var opt = jqcOptions[i];
-        var attr = $attr[opt] || $elem.attr(opt);
-        if (attr !== undefined) {
-          options[opt] = $parse(attr)();
+        if ($attr[opt] !== undefined) {
+          options[opt] = $parse($attr[opt])();
         }
       }
+      
+      $elem.jQCloud($scope.words, options);
 
-      jQuery($elem).jQCloud($scope.words, options);
-
+      var handleResize = function(){
+          var words = [];
+          $.extend(words,$scope.words);
+          $elem.jQCloud('destroy');
+          $elem.jQCloud('initialize');
+          $elem.jQCloud('update', words);
+      };
+      window.addEventListener('resize', handleResize);
+      
       $scope.$watchCollection('words', function() {
         $scope.$evalAsync(function() {
           var words = [];
           $.extend(words,$scope.words);
-          jQuery($elem).jQCloud('update', words);
+          $elem.jQCloud('update', words);
         });
       });
-
+    
       $elem.bind('$destroy', function() {
-        jQuery($elem).jQCloud('destroy');
+        $elem.jQCloud('destroy');
+        window.removeEventListener('resize',handleResize);
       });
     }
   };
 }]);
+
